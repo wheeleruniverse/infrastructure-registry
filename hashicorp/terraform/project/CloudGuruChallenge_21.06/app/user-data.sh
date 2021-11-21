@@ -2,9 +2,9 @@
 
 # ___________________________________________________________
 # variables
-AWS_ACCESS_KEY="AKIA3KNA3GKBYSUXAUPA"
-AWS_SECRET_KEY="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"
-DB_PASS="AWSjw5082059!"
+AWS_ACCESS_KEY=""
+AWS_SECRET_KEY=""
+DB_PASS=""
 PREFIX="wheeler-cgc2106-"
 
 # ___________________________________________________________
