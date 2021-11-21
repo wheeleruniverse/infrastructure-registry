@@ -1,0 +1,21 @@
+---
+Resources:
+  rProvisionedTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: S
+      BillingMode: PROVISIONED
+      KeySchema:
+        - AttributeName: date
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: TableName
+      Tags:
+        - Key: Name
+          Value: TableName
+        - Key: Project
+          Value: ProjectName
