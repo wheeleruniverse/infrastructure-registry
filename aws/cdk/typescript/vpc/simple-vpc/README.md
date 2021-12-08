@@ -2,6 +2,7 @@
 
 ## Resources
 
+* Elastic IP (for NAT)
 * Internet Gateway
 * NAT Gateway
 * Private NACL
