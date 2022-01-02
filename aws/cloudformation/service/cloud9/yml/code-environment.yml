@@ -42,3 +42,10 @@ Resources:
       Tags:
         - Key: Project
           Value: "candidate-assessment"
+
+
+Outputs: 
+  oCloudEnvironmentId: 
+    Description: Cloud9 environment id
+    Value: !Ref rCloudEnvironment
+    
