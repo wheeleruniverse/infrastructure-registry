@@ -1,0 +1,44 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates a Cloud9 environment with code cloned from CodeCommit
+
+Parameters:
+  pCandidateId: 
+    Description: the candidate id
+    Type: String
+    
+  pInstanceType:
+    AllowedValues:
+      - t3.nano
+      - t3.micro
+      - t3.medium
+      - t3.large
+    Description: the EC2 instance type to use
+    Type: String
+    
+  pRepositoryName:
+    Description: the CodeCommit repository name
+    Type: String
+    
+  pSubnetId: 
+    Description: the subnet id to use
+    Type: AWS::EC2::Subnet::Id
+
+Resources:
+  rCloudEnvironment:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties: 
+      AutomaticStopTimeMinutes: 30
+      ConnectionType: CONNECT_SSH
+      Description: candidate assessment coding environment
+      ImageId: 'resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64'
+      InstanceType: !Ref pInstanceType
+      Name: !Sub "cat-env-${pCandidateId}"
+      Repositories: 
+        - PathComponent: !Ref pRepositoryName
+          RepositoryUrl: !Sub "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/${pRepositoryName}"
+      SubnetId: !Ref pSubnetId
+      Tags:
+        - Key: Project
+          Value: "candidate-assessment"
