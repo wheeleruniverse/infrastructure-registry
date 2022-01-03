@@ -4,10 +4,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: creates a Cloud9 environment with code cloned from CodeCommit
 
 Parameters:
-  pCandidateId: 
-    Description: the candidate id
-    Type: String
-    
   pInstanceType:
     AllowedValues:
       - t3.nano
@@ -17,6 +13,10 @@ Parameters:
     Description: the EC2 instance type to use
     Type: String
     
+  pProjectName:
+    Description: the project name for tagging
+    Type: String
+    
   pRepositoryName:
     Description: the CodeCommit repository name
     Type: String
@@ -24,25 +24,51 @@ Parameters:
   pSubnetId: 
     Description: the subnet id to use
     Type: AWS::EC2::Subnet::Id
+    
+  pUserId: 
+    Description: the user id
+    Type: String
+    
+  pUserPassword:
+    Description: the IAM password to set for the user
+    Type: String
+    
+  pUserPolicy:
+    Description: the IAM policy to apply to the user
+    Type: String
 
 Resources:
   rCloudEnvironment:
     Type: AWS::Cloud9::EnvironmentEC2
+    DependsOn: rCloudEnvironmentUser
     Properties: 
       AutomaticStopTimeMinutes: 30
       ConnectionType: CONNECT_SSH
-      Description: candidate assessment coding environment
+      Description: cloud9 coding environment
       ImageId: 'resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64'
       InstanceType: !Ref pInstanceType
-      Name: !Sub "cat-env-${pCandidateId}"
+      Name: !Sub "cloud9-${pUserId}"
+      OwnerArn: !GetAtt rCloudEnvironmentUser.Arn
       Repositories: 
         - PathComponent: !Ref pRepositoryName
           RepositoryUrl: !Sub "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/${pRepositoryName}"
       SubnetId: !Ref pSubnetId
       Tags:
         - Key: Project
-          Value: "candidate-assessment"
-
+          Value: !Ref pProjectName
+          
+  rCloudEnvironmentUser:
+    Type: AWS::IAM::User
+    Properties: 
+      LoginProfile: 
+        Password: !Ref pUserPassword
+        PasswordResetRequired: false
+      ManagedPolicyArns: 
+        - !Ref pUserPolicy
+      Tags:
+        - Key: Project
+          Value: !Ref pProjectName
+      UserName: !Ref pUserId
 
 Outputs: 
   oCloudEnvironmentId: 
