@@ -47,13 +47,15 @@ Resources:
       Description: cloud9 coding environment
       ImageId: 'resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64'
       InstanceType: !Ref pInstanceType
-      Name: !Sub "cloud9-${pUserId}"
+      Name: !Ref pUserId
       OwnerArn: !GetAtt rCloudEnvironmentUser.Arn
       Repositories: 
         - PathComponent: !Ref pRepositoryName
           RepositoryUrl: !Sub "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/${pRepositoryName}"
       SubnetId: !Ref pSubnetId
       Tags:
+        - Key: Owner
+          Value: !Ref pUserId
         - Key: Project
           Value: !Ref pProjectName
           
@@ -66,6 +68,8 @@ Resources:
       ManagedPolicyArns: 
         - !Ref pUserPolicy
       Tags:
+        - Key: Owner
+          Value: !Ref pUserId
         - Key: Project
           Value: !Ref pProjectName
       UserName: !Ref pUserId
