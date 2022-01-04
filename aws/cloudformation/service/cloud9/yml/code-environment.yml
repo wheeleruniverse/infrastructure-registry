@@ -58,6 +58,8 @@ Resources:
           Value: !Ref pUserId
         - Key: Project
           Value: !Ref pProjectName
+        - Key: Repository
+          Value: !Ref pRepositoryName
           
   rCloudEnvironmentUser:
     Type: AWS::IAM::User
@@ -72,6 +74,8 @@ Resources:
           Value: !Ref pUserId
         - Key: Project
           Value: !Ref pProjectName
+        - Key: Repository
+          Value: !Ref pRepositoryName
       UserName: !Ref pUserId
 
 Outputs: 
