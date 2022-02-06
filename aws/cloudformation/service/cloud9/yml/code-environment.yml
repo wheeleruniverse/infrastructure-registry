@@ -54,6 +54,8 @@ Resources:
           RepositoryUrl: !Sub "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/${pRepositoryName}"
       SubnetId: !Ref pSubnetId
       Tags:
+        - Key: Account
+          Value: !Ref AWS::AccountId
         - Key: Owner
           Value: !Ref pUserId
         - Key: Project
@@ -70,12 +72,12 @@ Resources:
       ManagedPolicyArns: 
         - !Ref pUserPolicy
       Tags:
+        - Key: Account
+          Value: !Ref AWS::AccountId
         - Key: Owner
           Value: !Ref pUserId
         - Key: Project
           Value: !Ref pProjectName
-        - Key: Repository
-          Value: !Ref pRepositoryName
       UserName: !Ref pUserId
 
 Outputs: 
