@@ -1,0 +1,123 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates a budget with pre-defined thresholds and a single subscriber
+
+Parameters:
+  pBudgetAmount:
+    Description: the budget amount in USD
+    Type: Number
+    
+  pBudgetName:
+    Description: the budget name
+    Type: String
+    
+  pNotificationType:
+    AllowedValues:
+      - ACTUAL
+      - FORECASTED
+    Default: ACTUAL
+    Description: the notification type
+    Type: String
+    
+  pSubscriber:
+    Description: the subscriber email address
+    Type: String
+
+Resources:
+  rBudget:
+    Type: AWS::Budgets::Budget
+    Properties: 
+      Budget: 
+        BudgetLimit: 
+          Amount: !Ref pBudgetAmount
+          Unit: USD
+        BudgetName: !Ref pBudgetName
+        BudgetType: COST
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 50.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 60.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 70.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 80.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 90.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 100.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 150.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 200.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 300.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: !Ref pNotificationType
+            Threshold: 400.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pSubscriber
+              SubscriptionType: EMAIL
+
+
+
+
+    
