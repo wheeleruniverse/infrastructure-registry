@@ -1,0 +1,30 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates a CloudTrail organization trail
+
+Parameters:
+  pLogBucketName:
+    Description: the S3 bucket name to use
+    Type: String
+    
+  pLogPrefixName:
+    Description: the S3 prefix name to use
+    Type: String
+    
+  pTrailName:
+    Description: the trail name to use
+    Type: String
+
+Resources:
+  rTrail:
+    Type: AWS::CloudTrail::Trail
+    Properties: 
+      EnableLogFileValidation: true
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+      IsOrganizationTrail: true
+      S3BucketName: !Ref pLogBucketName
+      S3KeyPrefix: !Ref pLogPrefixName
+      TrailName: !Ref pTrailName

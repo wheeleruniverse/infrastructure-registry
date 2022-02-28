@@ -1,0 +1,192 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates and configures the necessary resources to establish an account baseline for an organization member account
+
+Parameters:
+  pAccount:
+    Description: the account name that will own the resource
+    Type: String
+    
+  pDomain:
+    Description: the domain name that owns the account
+    Type: String
+    
+  pEnvironment:
+    AllowedValues:
+      - prd
+    Description: the environment name that the resources are deployed into
+    Type: String
+    
+  pOwner:
+    Description: the email of the user that will own the resources
+    Type: String
+    
+  pBudgetAmount:
+    Description: the budget amount in USD
+    Type: Number
+    
+Conditions:
+  IsSecurityAccount: !Equals 
+    - !Ref pAccount
+    - security
+    
+Resources:
+  rBudget:
+    Type: AWS::Budgets::Budget
+    Properties: 
+      Budget: 
+        BudgetLimit: 
+          Amount: !Ref pBudgetAmount
+          Unit: USD
+        BudgetName: !Sub "${pAccount}-${pEnvironment}-budget"
+        BudgetType: COST
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 50.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 60.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 70.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 80.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 90.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 100.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 150.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 200.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 300.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+        - Notification: 
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 400.0
+            ThresholdType: PERCENTAGE
+          Subscribers: 
+            - Address: !Ref pOwner
+              SubscriptionType: EMAIL
+              
+  rLogBucket:           
+    Type: AWS::S3::Bucket
+    Condition: IsSecurityAccount
+    Properties: 
+      AccessControl: Private
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+          - ServerSideEncryptionByDefault: 
+              SSEAlgorithm: AES256
+      BucketName: !Sub "wheelerswebservices-${pEnvironment}-logs"
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 365
+            Id: !Sub "${pAccount}-${pEnvironment}-lifecycle-rule"
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+            NoncurrentVersionTransitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+            Status: Enabled
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+      Tags:
+        - Key: Account
+          Value: !Ref pAccount
+        - Key: AccountId
+          Value: !Ref AWS::AccountId
+        - Key: Domain
+          Value: !Ref pDomain
+        - Key: Environment
+          Value: !Ref pEnvironment
+        - Key: Owner
+          Value: !Ref pOwner
+        - Key: Name
+          Value: !Sub "wheelerswebservices-${pEnvironment}-logs"
+      VersioningConfiguration: 
+        Status: Enabled
+
+  rLogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsSecurityAccount
+    Properties:
+      Bucket: !Ref rLogBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetBucketAcl'
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Resource: !Sub "arn:aws:s3:::wheelerswebservices-${pEnvironment}-logs"
+          - Action:
+              - 's3:PutObject'
+            Condition:
+              StringEquals:
+                's3:x-amz-acl': bucket-owner-full-control
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Resource: 
+              - !Sub "arn:aws:s3:::wheelerswebservices-${pEnvironment}-logs/cloudtrail/AWSLogs/071681141728/*"
+              - !Sub "arn:aws:s3:::wheelerswebservices-${pEnvironment}-logs/cloudtrail/AWSLogs/o-u2kcvceosv/*"

@@ -1,28 +1,30 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: creates a budget with pre-defined thresholds and a single subscriber
+Description: creates and configures the necessary resources to establish an account baseline for the organization master account
 
 Parameters:
+  pAccount:
+    Description: the account name that will own the resource
+    Type: String
+    
+  pDomain:
+    Description: the domain name that owns the account
+    Type: String
+    
+  pEnvironment:
+    AllowedValues:
+      - master
+    Description: the environment name that the resources are deployed into
+    Type: String
+    
+  pOwner:
+    Description: the email of the user that will own the resources
+    Type: String
+    
   pBudgetAmount:
     Description: the budget amount in USD
     Type: Number
-    
-  pBudgetName:
-    Description: the budget name
-    Type: String
-    
-  pNotificationType:
-    AllowedValues:
-      - ACTUAL
-      - FORECASTED
-    Default: ACTUAL
-    Description: the notification type
-    Type: String
-    
-  pSubscriber:
-    Description: the subscriber email address
-    Type: String
 
 Resources:
   rBudget:
@@ -32,87 +34,117 @@ Resources:
         BudgetLimit: 
           Amount: !Ref pBudgetAmount
           Unit: USD
-        BudgetName: !Ref pBudgetName
+        BudgetName: !Sub "${pAccount}-budget"
         BudgetType: COST
         TimeUnit: MONTHLY
       NotificationsWithSubscribers:
         - Notification:
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 50.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 60.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 70.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 80.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 90.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 100.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 150.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 200.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 300.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
         - Notification: 
             ComparisonOperator: GREATER_THAN
-            NotificationType: !Ref pNotificationType
+            NotificationType: ACTUAL
             Threshold: 400.0
             ThresholdType: PERCENTAGE
           Subscribers: 
-            - Address: !Ref pSubscriber
+            - Address: !Ref pOwner
               SubscriptionType: EMAIL
+  
+  rTrail:
+    Type: AWS::CloudTrail::Trail
+    Properties: 
+      EnableLogFileValidation: true
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+      IsOrganizationTrail: true
+      S3BucketName: wheelerswebservices-prd-logs
+      S3KeyPrefix: cloudtrail
+      Tags:
+        - Key: Account
+          Value: !Ref pAccount
+        - Key: AccountId
+          Value: !Ref AWS::AccountId
+        - Key: Domain
+          Value: !Ref pDomain
+        - Key: Environment
+          Value: !Ref pEnvironment
+        - Key: Owner
+          Value: !Ref pOwner
+        - Key: Name
+          Value: !Sub "${pAccount}-trail"
+      TrailName: !Sub "${pAccount}-trail"
+
+
+
+
+    
