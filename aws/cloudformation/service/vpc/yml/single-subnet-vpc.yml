@@ -1,0 +1,77 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates a vpc with a single public subnet
+
+Parameters:
+  pProject:
+    Description: the project name to prefix resources
+    Type: String
+    
+Resources:
+  rInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: !Sub "${pProject}-igw"
+    
+  rInternetGatewayLink: 
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - rInternetGateway
+      - rNetwork
+    Properties: 
+      InternetGatewayId: !Ref rInternetGateway
+      VpcId: !Ref rNetwork
+
+  rNetwork:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: 10.0.0.0/28
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Sub "${pProject}-vpc"
+      
+  rRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - rInternetGatewayLink
+      - rRouteTable
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref rInternetGateway
+      RouteTableId: !Ref rRouteTable
+
+  rRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: rNetwork
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: !Sub "${pProject}-rtb"
+      VpcId: !Ref rNetwork
+      
+  rRouteTableLink:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - rRouteTable
+      - rSubnet
+    Properties: 
+      RouteTableId: !Ref rRouteTable
+      SubnetId: !Ref rSubnet
+
+  rSubnet:
+    Type: AWS::EC2::Subnet
+    DependsOn: rNetwork
+    Properties:
+      CidrBlock: 10.0.0.0/28
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${pProject}-subnet"
+      VpcId: !Ref rNetwork
+
