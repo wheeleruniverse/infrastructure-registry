@@ -1,0 +1,98 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates an s3 bucket to host website contents and a cloudfront distribution in the United States
+
+Parameters:
+  pProject:
+    Description: the project name to prefix resources
+    Type: String
+    
+Resources:
+  rDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: rDistributionIdentity
+    Properties: 
+      DistributionConfig:
+        Comment: !Sub "${pProject}-cdn"
+        DefaultCacheBehavior: 
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+          TargetOriginId: !Ref rOrigin
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Origins: 
+        - DomainName: !GetAtt rOrigin.RegionalDomainName
+          Id: !Ref rOrigin
+          S3OriginConfig: 
+            OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${rDistributionIdentity}"
+        PriceClass: PriceClass_100
+        Restrictions: 
+          GeoRestriction: 
+            Locations: 
+              - US
+            RestrictionType: whitelist
+        ViewerCertificate: 
+          CloudFrontDefaultCertificate: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${pProject}-cdn"
+        - Key: Project
+          Value: !Ref pProject
+  
+  rDistributionIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties: 
+      CloudFrontOriginAccessIdentityConfig: 
+          Comment: !Sub "${pProject}-oai"
+
+  rOrigin:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: !Sub "${AWS::AccountId}-${pProject}-origin"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::AccountId}-${pProject}-origin"
+        - Key: Project
+          Value: !Ref pProject
+
+  rOriginPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: rOrigin
+    Properties: 
+      Bucket: !Ref rOrigin
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Deny
+            NotPrincipal:
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${rDistributionIdentity}"
+            Resource: !Sub "arn:aws:s3:::${rOrigin}/*"
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${rDistributionIdentity}"
+            Resource: !Sub "arn:aws:s3:::${rOrigin}/*"
+
+Outputs: 
+  oDistributionDomainName: 
+    Description: CloudFront distribution domain name
+    Value: !GetAtt rDistribution.DomainName 
+  oOriginName: 
+    Description: S3 bucket origin
+    Value: !Ref rOrigin
