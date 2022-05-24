@@ -119,6 +119,90 @@ Resources:
             - Address: !Ref pOwner
               SubscriptionType: EMAIL
   
+  rReport:
+    Type: AWS::CUR::ReportDefinition
+    DependsOn:
+      - rReportBucketPolicy
+    Properties: 
+      Compression: ZIP
+      Format: textORcsv
+      RefreshClosedReports: true
+      ReportName: !Sub "${AWS::AccountId}-cur"
+      ReportVersioning: OVERWRITE_REPORT
+      S3Bucket: !Ref rReportBucket
+      S3Prefix: cur
+      S3Region: !Ref AWS::Region
+      TimeUnit: DAILY
+              
+  rReportBucket:           
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: Private
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+          - ServerSideEncryptionByDefault: 
+              SSEAlgorithm: AES256
+      BucketName: !Sub "${pAccount}-reports"
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 365
+            Id: !Sub "${pAccount}-lifecycle-rule"
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+            NoncurrentVersionTransitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+            Status: Enabled
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+      Tags:
+        - Key: Account
+          Value: !Ref pAccount
+        - Key: AccountId
+          Value: !Ref AWS::AccountId
+        - Key: Domain
+          Value: !Ref pDomain
+        - Key: Environment
+          Value: !Ref pEnvironment
+        - Key: Owner
+          Value: !Ref pOwner
+        - Key: Name
+          Value: !Sub "${pAccount}-reports"
+      VersioningConfiguration: 
+        Status: Enabled
+
+  rReportBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref rReportBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetBucketAcl'
+              - 's3:GetBucketPolicy'
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Sub "arn:aws:cur:us-east-1:${AWS::AccountId}:definition/*"
+                'aws:SourceAccount': !Ref AWS::AccountId
+            Effect: Allow
+            Principal:
+              Service: billingreports.amazonaws.com
+            Resource: !Sub "arn:aws:s3:::${pAccount}-reports"
+          - Action:
+              - 's3:PutObject'
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Sub "arn:aws:cur:us-east-1:${AWS::AccountId}:definition/*"
+                'aws:SourceAccount': !Ref AWS::AccountId
+            Effect: Allow
+            Principal:
+              Service: billingreports.amazonaws.com
+            Resource: !Sub "arn:aws:s3:::${pAccount}-reports/*"
+      
   rTrail:
     Type: AWS::CloudTrail::Trail
     Properties: 
@@ -127,7 +211,7 @@ Resources:
       IsLogging: true
       IsMultiRegionTrail: true
       IsOrganizationTrail: true
-      S3BucketName: wheelerswebservices-prd-logs
+      S3BucketName: !Sub "${pAccount}-prd-logs"
       S3KeyPrefix: cloudtrail
       Tags:
         - Key: Account
@@ -143,8 +227,4 @@ Resources:
         - Key: Name
           Value: !Sub "${pAccount}-trail"
       TrailName: !Sub "${pAccount}-trail"
-
-
-
-
     

@@ -6,7 +6,6 @@ Description: creates a Cloud9 environment with code cloned from CodeCommit
 Parameters:
   pInstanceType:
     AllowedValues:
-      - t3.nano
       - t3.micro
       - t3.medium
       - t3.large

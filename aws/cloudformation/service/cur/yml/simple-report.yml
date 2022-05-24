@@ -1,0 +1,31 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates a simple cost and usage report
+
+Parameters:
+  pReportName:
+    Description: the report name
+    Type: String
+    
+  pReportBucketName:
+    Description: the S3 bucket name
+    Type: String
+    
+  pReportPrefixName:
+    Description: the S3 prefix name
+    Type: String
+    
+Resources:  
+  rReport:
+    Type: AWS::CUR::ReportDefinition
+    Properties: 
+      Compression: ZIP
+      Format: textORcsv
+      RefreshClosedReports: true
+      ReportName: !Ref pReportName
+      ReportVersioning: OVERWRITE_REPORT
+      S3Bucket: !Ref pReportBucketName
+      S3Prefix: !Ref pReportPrefixName
+      S3Region: !Ref "AWS::Region"
+      TimeUnit: DAILY
