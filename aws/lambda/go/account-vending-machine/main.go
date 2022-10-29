@@ -28,13 +28,15 @@ func HandleRequest() (string, error) {
 	account := ""
 	domain := ""
 	environment := ""
+	ouRootId := ""
+	ouName := ""
 	role := "OrganizationAccountAccessRole"
 
 	organizationsClient := organizations.NewFromConfig(cfg)
 	createAccountOutput := createAccount(organizationsClient, account, domain, environment, role)
 	accountId := aws.ToString(createAccountOutput.CreateAccountStatus.AccountId)
 
-	// TODO move account to OU
+	updateAccountOrganizationalUnit(organizationsClient, accountId, ouRootId, ouName)
 
 	stsClient := sts.NewFromConfig(cfg)
 	assumeRoleOutput := assumeRole(stsClient, accountId, role)
@@ -119,60 +121,63 @@ func createAccount(
 }
 
 func deleteDefaultVpc(client *ec2.Client) {
-
-	// find vpcs
-	describeVpcsOutput, describeVpcsErr := client.DescribeVpcs(context.TODO(), &ec2.DescribeVpcsInput{})
-	if describeVpcsErr != nil {
-		log.Fatalf("ec2.DescribeVpcs failed because %v", describeVpcsErr)
-	}
-
-	// find default vpc
-	var defaultVpcId *string
-	for _, vpc := range describeVpcsOutput.Vpcs {
-		if ec2Types.TenancyDefault == vpc.InstanceTenancy {
-			defaultVpcId = vpc.VpcId
-			break
-		}
-	}
-	if defaultVpcId == nil {
-		// no default vpc
-		return
-	}
-
-	// find subnets
-	describeSubnetsOutput, describeSubnetsErr := client.DescribeSubnets(context.TODO(), &ec2.DescribeSubnetsInput{
+	describeVpcsOutput, describeVpcsErr := client.DescribeVpcs(context.TODO(), &ec2.DescribeVpcsInput{
 		Filters: []ec2Types.Filter{
 			{
-				Name: aws.String("vpc-id"),
+				Name: aws.String("is-default"),
 				Values: []string{
-					aws.ToString(defaultVpcId),
+					"true",
 				},
 			},
 		},
 	})
-	if describeSubnetsErr != nil {
-		log.Fatalf("ec2.DescribeSubnets failed because %v", describeSubnetsErr)
+	if describeVpcsErr != nil {
+		log.Fatalf("ec2.DescribeVpcs failed because %v", describeVpcsErr)
+	}
+	defaultVpcId := describeVpcsOutput.Vpcs[0].VpcId
+
+	deleteSubnets(client, defaultVpcId)
+
+	deleteInternetGateways(client, defaultVpcId)
+
+	_, deleteVpcErr := client.DeleteVpc(context.TODO(), &ec2.DeleteVpcInput{
+		VpcId: defaultVpcId,
+	})
+	if deleteVpcErr != nil {
+		log.Fatalf("ec2.DeleteVpc failed because %v", deleteVpcErr)
+	}
+}
+
+func deleteInternetGateway(client *ec2.Client, vpcId *string, igwId *string) {
+	detachInternetGatewayInput := ec2.DetachInternetGatewayInput{
+		InternetGatewayId: igwId,
+		VpcId:             vpcId,
+	}
+	_, detachInternetGatewayErr := client.DetachInternetGateway(
+		context.TODO(), &detachInternetGatewayInput,
+	)
+	if detachInternetGatewayErr != nil {
+		log.Fatalf("ec2.DetachInternetGateway failed because %v", detachInternetGatewayErr)
 	}
 
-	// delete subnets
-	for _, subnet := range describeSubnetsOutput.Subnets {
-		if defaultVpcId == subnet.VpcId {
-			_, deleteSubnetErr := client.DeleteSubnet(context.TODO(), &ec2.DeleteSubnetInput{
-				SubnetId: subnet.SubnetId,
-			})
-			if deleteSubnetErr != nil {
-				log.Fatalf("ec2.DeleteSubnet %v failed because %v", &subnet.SubnetId, deleteSubnetErr)
-			}
-		}
+	deleteInternetGatewayInput := ec2.DeleteInternetGatewayInput{
+		InternetGatewayId: igwId,
 	}
+	_, deleteInternetGatewayErr := client.DeleteInternetGateway(
+		context.TODO(), &deleteInternetGatewayInput,
+	)
+	if deleteInternetGatewayErr != nil {
+		log.Fatalf("ec2.DeleteInternetGateway failed because %v", deleteInternetGatewayErr)
+	}
+}
 
-	// describe internet gateways
+func deleteInternetGateways(client *ec2.Client, vpcId *string) {
 	describeInternetGatewaysInput := ec2.DescribeInternetGatewaysInput{
 		Filters: []ec2Types.Filter{
 			{
 				Name: aws.String("attachment.vpc-id"),
 				Values: []string{
-					aws.ToString(defaultVpcId),
+					aws.ToString(vpcId),
 				},
 			},
 		},
@@ -185,54 +190,69 @@ func deleteDefaultVpc(client *ec2.Client) {
 	}
 
 	for _, igw := range describeInternetGatewaysOutput.InternetGateways {
-		// detach internet gateway
-		detachInternetGatewayInput := ec2.DetachInternetGatewayInput{
-			InternetGatewayId: igw.InternetGatewayId,
-			VpcId:             defaultVpcId,
-		}
-		_, detachInternetGatewayErr := client.DetachInternetGateway(
-			context.TODO(), &detachInternetGatewayInput,
-		)
-		if detachInternetGatewayErr != nil {
-			log.Fatalf("ec2.DetachInternetGateway failed because %v", detachInternetGatewayErr)
-		}
-
-		// delete internet gateway
-		deleteInternetGatewayInput := ec2.DeleteInternetGatewayInput{
-			InternetGatewayId: igw.InternetGatewayId,
-		}
-		_, deleteInternetGatewayErr := client.DeleteInternetGateway(
-			context.TODO(), &deleteInternetGatewayInput,
-		)
-		if deleteInternetGatewayErr != nil {
-			log.Fatalf("ec2.DeleteInternetGateway failed because %v", deleteInternetGatewayErr)
-		}
-	}
-
-	// delete vpc
-	_, deleteVpcErr := client.DeleteVpc(context.TODO(), &ec2.DeleteVpcInput{
-		VpcId: defaultVpcId,
-	})
-	if deleteVpcErr != nil {
-		log.Fatalf("ec2.DeleteVpc failed because %v", deleteVpcErr)
+		deleteInternetGateway(client, vpcId, igw.InternetGatewayId)
 	}
 }
 
-/*
+func deleteSubnets(client *ec2.Client, vpcId *string) {
+	describeSubnetsOutput, describeSubnetsErr := client.DescribeSubnets(context.TODO(), &ec2.DescribeSubnetsInput{
+		Filters: []ec2Types.Filter{
+			{
+				Name: aws.String("vpc-id"),
+				Values: []string{
+					aws.ToString(vpcId),
+				},
+			},
+		},
+	})
+	if describeSubnetsErr != nil {
+		log.Fatalf("ec2.DescribeSubnets failed because %v", describeSubnetsErr)
+	}
+	for _, subnet := range describeSubnetsOutput.Subnets {
+		if vpcId == subnet.VpcId {
+			_, deleteSubnetErr := client.DeleteSubnet(context.TODO(), &ec2.DeleteSubnetInput{
+				SubnetId: subnet.SubnetId,
+			})
+			if deleteSubnetErr != nil {
+				log.Fatalf("ec2.DeleteSubnet %v failed because %v", &subnet.SubnetId, deleteSubnetErr)
+			}
+		}
+	}
+}
 
-   igw_response = ec2_client.describe_internet_gateways()
-   for i in range(0,len(igw_response['InternetGateways'])):
-       for j in range(0,len(igw_response['InternetGateways'][i]['Attachments'])):
-           if(igw_response['InternetGateways'][i]['Attachments'][j]['VpcId'] == default_vpcid):
-               default_igw = igw_response['InternetGateways'][i]['InternetGatewayId']
-   #print(default_igw)
-   detach_default_igw_response = ec2_client.detach_internet_gateway(InternetGatewayId=default_igw,VpcId=default_vpcid,DryRun=False)
-   delete_internet_gateway_response = ec2_client.delete_internet_gateway(InternetGatewayId=default_igw)
+func updateAccountOrganizationalUnit(
+	client *organizations.Client,
+	accountId string,
+	ouRootId string,
+	ouName string,
+) {
+	listOrganizationalUnitsForParentInput := organizations.ListOrganizationalUnitsForParentInput{
+		ParentId: &ouRootId,
+	}
+	listOrganizationalUnitsForParentOutput, listOrganizationalUnitsForParentErr := client.ListOrganizationalUnitsForParent(
+		context.TODO(), &listOrganizationalUnitsForParentInput,
+	)
+	if listOrganizationalUnitsForParentErr != nil {
+		log.Fatalf("organizations.ListOrganizationalUnitsForParent failed because %v", listOrganizationalUnitsForParentErr)
+	}
 
-   #print("Default IGW " + currentregion + "Deleted.")
+	var ouId *string
+	for _, ou := range listOrganizationalUnitsForParentOutput.OrganizationalUnits {
+		if &ouName == ou.Name {
+			ouId = ou.Id
+			break
+		}
+	}
+	if ouId == nil {
+		log.Fatalf("Could not find 'ouId' for '%v' with 'organizationsRootId': %v", ouName, ouRootId)
+	}
 
-   time.sleep(10)
-   delete_vpc_response = ec2_client.delete_vpc(VpcId=default_vpcid,DryRun=False)
-   print("Deleted Default VPC in {}".format(currentregion))
-   return delete_vpc_response
-*/
+	_, moveAccountErr := client.MoveAccount(context.TODO(), &organizations.MoveAccountInput{
+		AccountId:           &accountId,
+		DestinationParentId: &ouRootId,
+		SourceParentId:      ouId,
+	})
+	if moveAccountErr != nil {
+		log.Fatalf("organizations.MoveAccount failed because %v", moveAccountErr)
+	}
+}
