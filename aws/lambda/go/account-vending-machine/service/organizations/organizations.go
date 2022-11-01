@@ -1,99 +1,86 @@
 package organizations
 
 import (
+	"account-vending-machine/types"
 	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
-	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
+	organizationsTypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
 	"log"
 )
 
 var client *organizations.Client
 var ctx = context.TODO()
 
-type CreateAccountInput struct {
-	AccountName *string
-	Domain      *string
-	Environment *string
-	Role        *string
-	OuRootId    *string
-	OuName      *string
-
-	accountId *string
-	ouId      *string
-}
-
-type CreateAccountOutput struct {
-	AccountId *string
-}
-
 func Configure(cfg aws.Config) {
 	client = organizations.NewFromConfig(cfg)
 }
 
-func CreateAccount(input CreateAccountInput) CreateAccountOutput {
+func CreateAccount(event types.Event, role *string) types.Account {
 	if client == nil {
 		log.Fatalf("organizations.Client is nil")
 	}
-	createAccountOutput := createAccount(input)
-	input.accountId = createAccountOutput.AccountId
+	createAccountOutput := createAccount(&event.AccountName, &event.Domain, &event.Environment, role)
 
-	listOrganizationalUnitsForParentOutput := listOrganizationalUnitsForParent(input.OuRootId)
+	listOrganizationalUnitsForParentOutput := listOrganizationalUnitsForParent(&event.OuRootId)
 
 	var ouId *string
 	for _, ou := range listOrganizationalUnitsForParentOutput.OrganizationalUnits {
-		if input.OuName == ou.Name {
+		if event.OuName == *ou.Name {
 			ouId = ou.Id
 			break
 		}
 	}
 	if ouId == nil {
-		log.Fatalf("Could not find 'ouId' for '%v' with 'ouRootId': %v", input.OuName, input.OuRootId)
+		log.Fatalf("Could not find 'ouId' for '%v' with 'ouRootId': %v", event.OuName, event.OuRootId)
 	}
-	input.ouId = ouId
 
-	moveAccount(input)
+	moveAccount(createAccountOutput.AccountId, &event.OuRootId, ouId)
 
 	return createAccountOutput
 }
 
-func createAccount(input CreateAccountInput) CreateAccountOutput {
-	accountName := *input.AccountName
-	email := aws.String(accountName + "@wheelerswebservices.com")
+func createAccount(
+	accountName *string,
+	domain *string,
+	environment *string,
+	role *string,
+) types.Account {
+	owner := aws.String((*accountName) + "@wheelerswebservices.com")
 	createAccountInput := organizations.CreateAccountInput{
-		AccountName:            input.AccountName,
-		Email:                  email,
-		IamUserAccessToBilling: types.IAMUserAccessToBillingDeny,
-		RoleName:               input.Role,
-		Tags:                   createTags(input.AccountName, input.Environment, input.Domain, email),
+		AccountName:            accountName,
+		Email:                  owner,
+		IamUserAccessToBilling: organizationsTypes.IAMUserAccessToBillingDeny,
+		RoleName:               role,
+		Tags:                   createTags(accountName, domain, environment, owner),
 	}
 	createAccountOutput, createAccountErr := client.CreateAccount(ctx, &createAccountInput)
 	if createAccountErr != nil {
 		log.Fatalf("organizations.CreateAccount failed because %v", createAccountErr)
 	}
-	return CreateAccountOutput{
+	return types.Account{
 		AccountId: createAccountOutput.CreateAccountStatus.AccountId,
 	}
 }
 
 func createTags(
 	account *string,
-	environment *string,
 	domain *string,
+	environment *string,
 	owner *string,
-) []types.Tag {
-	return []types.Tag{
+) []organizationsTypes.Tag {
+	return []organizationsTypes.Tag{
 		{
 			Key:   aws.String("Account"),
 			Value: account,
 		},
 		{
-			Key:   aws.String("Environment"),
-			Value: environment,
-		},
-		{
 			Key:   aws.String("Domain"),
 			Value: domain,
+		},
+		{
+			Key:   aws.String("Environment"),
+			Value: environment,
 		},
 		{
 			Key:   aws.String("Owner"),
@@ -115,11 +102,15 @@ func listOrganizationalUnitsForParent(ouRootId *string) *organizations.ListOrgan
 	return listOrganizationalUnitsForParentOutput
 }
 
-func moveAccount(input CreateAccountInput) {
+func moveAccount(
+	accountId *string,
+	destinationParentId *string,
+	sourceParentId *string,
+) {
 	_, moveAccountErr := client.MoveAccount(ctx, &organizations.MoveAccountInput{
-		AccountId:           input.accountId,
-		DestinationParentId: input.OuRootId,
-		SourceParentId:      input.ouId,
+		AccountId:           accountId,
+		DestinationParentId: destinationParentId,
+		SourceParentId:      sourceParentId,
 	})
 	if moveAccountErr != nil {
 		log.Fatalf("organizations.MoveAccount failed because %v", moveAccountErr)
