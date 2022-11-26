@@ -124,6 +124,31 @@ Resources:
             - Address: !Ref pOwner
               SubscriptionType: EMAIL
               
+  rCloudFormationBucket:           
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: Private
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+          - ServerSideEncryptionByDefault: 
+              SSEAlgorithm: AES256
+      BucketName: !Sub "wheelerswebservices-${pAccount}-${pEnvironment}-cf-templates"
+      Tags:
+        - Key: Account
+          Value: !Ref pAccount
+        - Key: AccountId
+          Value: !Ref AWS::AccountId
+        - Key: Domain
+          Value: !Ref pDomain
+        - Key: Environment
+          Value: !Ref pEnvironment
+        - Key: Owner
+          Value: !Ref pOwner
+        - Key: Name
+          Value: !Sub "wheelerswebservices-${pAccount}-${pEnvironment}-cf-templates"
+      VersioningConfiguration: 
+        Status: Enabled
+              
   rLogBucket:           
     Type: AWS::S3::Bucket
     Condition: IsSecurityAccount

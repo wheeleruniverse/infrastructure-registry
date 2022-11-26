@@ -1,0 +1,43 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: creates a Service Catalog product to invoke an Account Vending Machine
+
+Parameters:
+  pAccount:
+    Description: the account name that will own the resource
+    Type: String
+    
+  pDomain:
+    Description: the domain name that owns the account
+    Type: String
+    
+  pEnvironment:
+    AllowedValues:
+      - prd
+    Description: the environment name that the resources are deployed into
+    Type: String
+    
+  pOwner:
+    Description: the email of the user that will own the resources
+    Type: String
+    
+Resources:
+  rProduct:
+    Type: AWS::ServiceCatalog::CloudFormationProduct
+    Properties:
+      AcceptLanguage: en
+      Description: creates a child aws account
+      Name: account-vending-machine
+      Owner: !Ref pOwner
+      ProvisioningArtifactParameters: 
+        - Info: { "LoadTemplateFromURL": "<S3 URL>" } 
+      Tags:
+        - Key: Account
+          Value: !Ref pAccount
+        - Key: Domain
+          Value: !Ref pDomain
+        - Key: Environment
+          Value: !Ref pEnvironment
+        - Key: Owner
+          Value: !Ref pOwner
