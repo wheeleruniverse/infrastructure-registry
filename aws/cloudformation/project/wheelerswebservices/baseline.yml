@@ -27,11 +27,54 @@ Parameters:
     Type: Number
     
 Conditions:
+  IsInfrastructureAccount: !Equals 
+    - !Ref pAccount
+    - infrastructure
+
   IsSecurityAccount: !Equals 
     - !Ref pAccount
     - security
-    
+
 Resources:
+  rBaselineRole:
+    Type: AWS::IAM::Role
+    Condition: IsInfrastructureAccount
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Description: allows cloudformation service in the infrastructure account to create the baseline stack in child accounts
+      Policies:
+        - PolicyName: !Sub "wheelerswebservices-${pAccount}-${pEnvironment}-baseline"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:PutItem"
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*"
+                Sid: dynamodb
+      RoleName: !Sub "wheelerswebservices-${pAccount}-${pEnvironment}-baseline"
+      Tags:
+        - Key: Account
+          Value: !Ref pAccount
+        - Key: AccountId
+          Value: !Ref AWS::AccountId
+        - Key: Domain
+          Value: !Ref pDomain
+        - Key: Environment
+          Value: !Ref pEnvironment
+        - Key: Owner
+          Value: !Ref pOwner
+        - Key: Name
+          Value: !Sub "wheelerswebservices-${pAccount}-${pEnvironment}-baseline"
+    
   rBudget:
     Type: AWS::Budgets::Budget
     Properties: 

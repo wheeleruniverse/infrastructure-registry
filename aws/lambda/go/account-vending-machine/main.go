@@ -2,6 +2,7 @@ package main
 
 import (
 	"account-vending-machine/config"
+	"account-vending-machine/service/cloudformation"
 	"account-vending-machine/service/ec2"
 	"account-vending-machine/service/organizations"
 	"account-vending-machine/service/sts"
@@ -37,6 +38,9 @@ func create(request types.Request) {
 
 	sts.Configure(cfg)
 	assumeRoleCfg := sts.AssumeRole(createAccountOutput, role)
+
+	cloudformation.Configure(assumeRoleCfg)
+	cloudformation.CreateBaseline(request.ResourceProperties)
 
 	ec2.Configure(assumeRoleCfg)
 	ec2.DeleteDefaultVpc()

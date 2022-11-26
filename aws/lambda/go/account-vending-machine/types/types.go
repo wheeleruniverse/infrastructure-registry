@@ -10,6 +10,7 @@ type Event struct {
 	Environment string
 	OuRootId    string
 	OuName      string
+	Owner       string
 }
 
 type Request struct {

@@ -20,39 +20,24 @@ func CreateAccount(event types.Event, role *string) types.Account {
 	if client == nil {
 		log.Fatalf("organizations.Client is nil")
 	}
-	createAccountOutput := createAccount(&event.AccountName, &event.Domain, &event.Environment, role)
+	createAccountOutput := createAccount(event, role)
 
-	listOrganizationalUnitsForParentOutput := listOrganizationalUnitsForParent(&event.OuRootId)
+	environmentOuId := findOrganizationalUnit(&event.OuRootId, &event.Environment)
 
-	var ouId *string
-	for _, ou := range listOrganizationalUnitsForParentOutput.OrganizationalUnits {
-		if event.OuName == *ou.Name {
-			ouId = ou.Id
-			break
-		}
-	}
-	if ouId == nil {
-		log.Fatalf("Could not find 'ouId' for '%v' with 'ouRootId': %v", event.OuName, event.OuRootId)
-	}
+	targetOuId := findOrganizationalUnit(environmentOuId, &event.OuName)
 
-	moveAccount(createAccountOutput.AccountId, &event.OuRootId, ouId)
+	moveAccount(createAccountOutput.AccountId, &event.OuRootId, targetOuId)
 
 	return createAccountOutput
 }
 
-func createAccount(
-	accountName *string,
-	domain *string,
-	environment *string,
-	role *string,
-) types.Account {
-	owner := aws.String((*accountName) + "@wheelerswebservices.com")
+func createAccount(event types.Event, role *string) types.Account {
 	createAccountInput := organizations.CreateAccountInput{
-		AccountName:            accountName,
-		Email:                  owner,
+		AccountName:            &event.AccountName,
+		Email:                  &event.Owner,
 		IamUserAccessToBilling: organizationsTypes.IAMUserAccessToBillingDeny,
 		RoleName:               role,
-		Tags:                   createTags(accountName, domain, environment, owner),
+		Tags:                   createTags(event),
 	}
 	createAccountOutput, createAccountErr := client.CreateAccount(ctx, &createAccountInput)
 	if createAccountErr != nil {
@@ -63,30 +48,41 @@ func createAccount(
 	}
 }
 
-func createTags(
-	account *string,
-	domain *string,
-	environment *string,
-	owner *string,
-) []organizationsTypes.Tag {
+func createTags(event types.Event) []organizationsTypes.Tag {
 	return []organizationsTypes.Tag{
 		{
 			Key:   aws.String("Account"),
-			Value: account,
+			Value: &event.AccountName,
 		},
 		{
 			Key:   aws.String("Domain"),
-			Value: domain,
+			Value: &event.Domain,
 		},
 		{
 			Key:   aws.String("Environment"),
-			Value: environment,
+			Value: &event.Environment,
 		},
 		{
 			Key:   aws.String("Owner"),
-			Value: owner,
+			Value: &event.Owner,
 		},
 	}
+}
+
+func findOrganizationalUnit(ouParentId *string, ouTargetName *string) *string {
+	listOrganizationalUnitsForParentOutput := listOrganizationalUnitsForParent(ouParentId)
+
+	var ouId *string
+	for _, ou := range listOrganizationalUnitsForParentOutput.OrganizationalUnits {
+		if ouTargetName == ou.Name {
+			ouId = ou.Id
+			break
+		}
+	}
+	if ouId == nil {
+		log.Fatalf("Could not find 'ouId' for '%v' with 'ouParentId': %v", ouTargetName, ouParentId)
+	}
+	return ouId
 }
 
 func listOrganizationalUnitsForParent(ouRootId *string) *organizations.ListOrganizationalUnitsForParentOutput {

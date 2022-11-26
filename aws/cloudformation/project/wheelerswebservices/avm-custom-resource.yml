@@ -22,8 +22,19 @@ Parameters:
     Description: the email of the user that will own the resources
     Type: String
     
+  pOuName:
+    Description: the ou name to move the newly created account to
+    Type: String
+    
 Resources:
-  rProduct:
+  rAccountVendingMachine:
     Type: Custom::AccountVendingMachine
     Properties:
-      ServiceToken: <Lambda ARN>
+      ServiceToken: a
+      AccountName: !Ref pAccount
+      Domain: !Ref pDomain
+      Environment: !Ref pEnvironment
+      OuRootId: r-fgwv
+      OuName: !Ref pOuName
+      Owner: !Ref pOwner
+      
