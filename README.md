@@ -61,7 +61,6 @@ Modular CloudFormation templates for individual AWS services:
 ### Cloud Challenge Solutions
 Real-world implementations from cloud certification challenges:
 - **Multi-cloud Serverless API** (`CloudGuruChallenge_21.01`): Cross-cloud integration with AWS Lambda and Azure services
-- **Multi-tier Applications** (`CloudGuruChallenge_21.06`): AWS VPC, application, and database tiers
 - **Azure VM Deployments** (`CloudGuruChallenge_21.02`): ARM templates for compute resources
 - **GCP Full-Stack Application** (`CloudGuruChallenge_21.08`): Cloud Run, Storage, and Firestore integration
 
