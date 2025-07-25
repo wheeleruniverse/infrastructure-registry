@@ -75,12 +75,12 @@ For complete, project-specific infrastructure implementations, see these dedicat
 - **Description**: Complete multi-cloud resume hosting solution with Terraform configurations for AWS, Azure, and GCP
 
 ### Cloud Guru Challenge Projects
-- **[cgc-aws-covid-etl](https://github.com/wheeleruniverse/cgc-aws-covid-etl)** ([IAC](https://github.com/wheeleruniverse/cgc-aws-covid-etl/tree/main/cloudformation)): Automated COVID-19 data ETL pipeline with Lambda, DynamoDB, and EventBridge scheduling
-- **[cgc-aws-app-performance](https://github.com/wheeleruniverse/cgc-aws-app-performance)** ([IAC](https://github.com/wheeleruniverse/cgc-aws-app-performance/tree/main/terraform)): AWS application performance monitoring and optimization solutions with ElastiCache
+- **[cgc-aws-covid-etl](https://github.com/wheeleruniverse/cgc-aws-covid-etl/tree/main/cloudformation)**: Automated COVID-19 data ETL pipeline with Lambda, DynamoDB, and EventBridge scheduling
+- **[cgc-aws-app-performance](https://github.com/wheeleruniverse/cgc-aws-app-performance/tree/main/terraform)**: AWS application performance monitoring and optimization solutions with ElastiCache
 - **[cgc-aws-ml-recommendation-engine](https://github.com/wheeleruniverse/cgc-aws-ml-recommendation-engine)**: Machine learning-powered recommendation system on AWS with SageMaker and Athena
-- **[cgc-azure-cicd](https://github.com/wheeleruniverse/cgc-azure-cicd)** ([IAC](https://github.com/wheeleruniverse/cgc-azure-cicd/tree/main/arm)): Complete Azure CI/CD pipeline infrastructure and automation with ARM templates
-- **[cgc-gcp-resume-env](https://github.com/wheeleruniverse/cgc-gcp-resume-env)** ([IAC](https://github.com/wheeleruniverse/cgc-gcp-resume-env/tree/main/core)): Google Cloud resume hosting environment with Cloud Run and CDN
-- **[cgc-multicloud-madness](https://github.com/wheeleruniverse/cgc-multicloud-madness)** ([IAC](https://github.com/wheeleruniverse/cgc-multicloud-madness/tree/main/sam)): Multi-cloud chaos engineering and resilience testing framework with SAM
+- **[cgc-azure-cicd](https://github.com/wheeleruniverse/cgc-azure-cicd/tree/main/arm)** : Complete Azure CI/CD pipeline infrastructure and automation with ARM templates
+- **[cgc-gcp-resume-env](https://github.com/wheeleruniverse/cgc-gcp-resume-env/tree/main/core)** : Google Cloud resume hosting environment with Cloud Run and CDN
+- **[cgc-multicloud-madness](https://github.com/wheeleruniverse/cgc-multicloud-madness/tree/main/sam)** : Multi-cloud chaos engineering and resilience testing framework with SAM
 
 > **Note**: The infrastructure-registry focuses on reusable templates and patterns, while project-specific repositories contain complete implementations with application code, deployment scripts, and detailed project documentation.
 
