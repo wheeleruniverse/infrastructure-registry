@@ -23,15 +23,10 @@ For complete project implementations with application code and deployment automa
 │   ├── cdk/                      # AWS CDK projects (TypeScript)
 │   ├── cli/                      # AWS CLI automation scripts
 │   ├── cloudformation/           # CloudFormation templates
-│   │   ├── project/             # Complete project templates
-│   │   └── service/             # Individual service templates
+│   │   ├── project/              # Complete project templates
+│   │   └── service/              # Individual service templates
 │   ├── lambda/                   # Lambda functions
-│   │   └── go/                  # Go-based Lambda functions
-│   └── sam/                      # SAM application templates
-├── azure/                        # Azure-specific resources
-│   └── arm/                      # ARM templates
-├── hashicorp/                    # HashiCorp tool configurations
-│   └── terraform/                # Terraform modules and projects
+│   │   └── go/                   # Go-based Lambda functions for automation
 ```
 
 ## Key Components
