@@ -2,6 +2,8 @@
 
 A curated collection of reusable AWS Infrastructure as Code (IaC) templates and automation tools. This repository serves as a reference library for common AWS infrastructure components, enterprise baselines, and architectural patterns.
 
+> **⚠️ IMPORTANT DISCLAIMER**: Never deploy infrastructure code that you do not fully understand. These templates are provided as educational references and may not reflect the latest AWS best practices or service updates. Always consult current AWS documentation, review all code thoroughly, and test in non-production environments before applying any resources to production systems. I make no guarantees about the currency, accuracy, or suitability of these templates for your specific use case.
+
 ## Overview
 
 This repository focuses on **reusable AWS infrastructure templates and patterns** rather than complete project implementations. It contains modular, production-ready AWS components including CloudFormation templates, CDK constructs, and Go-based automation functions.
