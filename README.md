@@ -1,18 +1,20 @@
 # Infrastructure Registry
 
-A comprehensive collection of Infrastructure as Code (IaC) templates and tools for AWS, Azure, and multi-cloud deployments. This repository serves as a reference library for common infrastructure patterns, cloud automation, and enterprise-grade solutions.
+A curated collection of reusable Infrastructure as Code (IaC) templates and patterns for AWS, Azure, and multi-cloud deployments. This repository serves as a reference library for common infrastructure components, enterprise baselines, and architectural patterns.
 
 ## Overview
 
-This repository contains practical, production-ready infrastructure templates organized by cloud provider and tool type. It includes everything from basic service configurations to complex multi-tier applications and enterprise account management systems.
+This repository focuses on **reusable infrastructure templates and patterns** rather than complete project implementations. It contains modular, production-ready components organized by cloud provider and tool type, including service-specific templates, enterprise baselines, and architectural reference implementations.
+
+For complete project implementations with application code and deployment automation, see the [Project-Specific Infrastructure](#project-specific-infrastructure) section below.
 
 ### Key Features
 
-- **Multi-Cloud Support**: AWS, Azure, and HashiCorp Terraform configurations
-- **Production-Ready Templates**: Enterprise-grade solutions with security best practices
-- **Account Management**: Automated AWS account vending machine with baseline configurations
-- **Cloud Governance**: Cost management, compliance, and monitoring templates
-- **Challenge Solutions**: Real-world implementations from cloud certification challenges
+- **Reusable Templates**: Modular, composable infrastructure components across multiple cloud providers
+- **Enterprise Baselines**: Production-ready account setup and governance patterns
+- **Security Best Practices**: Templates following cloud security frameworks and compliance standards
+- **Service Patterns**: Common architectural patterns for individual cloud services
+- **Reference Implementations**: Architectural examples from real-world challenges and scenarios
 
 ## Repository Structure
 
@@ -58,9 +60,29 @@ Modular CloudFormation templates for individual AWS services:
 
 ### Cloud Challenge Solutions
 Real-world implementations from cloud certification challenges:
-- **COVID ETL Pipeline** (`cgc-aws-covid-etl`): Automated data processing with Lambda, DynamoDB, and EventBridge
-- **Multi-tier Applications**: VPC, application, and database tiers
-- **Azure VM Deployments**: ARM templates for compute resources
+- **Multi-cloud Serverless API** (`CloudGuruChallenge_21.01`): Cross-cloud integration with AWS Lambda and Azure services
+- **Multi-tier Applications** (`CloudGuruChallenge_21.06`): AWS VPC, application, and database tiers
+- **Azure VM Deployments** (`CloudGuruChallenge_21.02`): ARM templates for compute resources
+- **GCP Full-Stack Application** (`CloudGuruChallenge_21.08`): Cloud Run, Storage, and Firestore integration
+
+## Project-Specific Infrastructure
+
+For complete, project-specific infrastructure implementations, see these dedicated repositories:
+
+### Multi-Cloud Resume Infrastructure
+- **Repository**: [multicloud-resume](https://github.com/wheeleruniverse/multicloud-resume)
+- **Infrastructure**: [`iac/terraform/`](https://github.com/wheeleruniverse/multicloud-resume/tree/main/iac/terraform)
+- **Description**: Complete multi-cloud resume hosting solution with Terraform configurations for AWS, Azure, and GCP
+
+### Cloud Guru Challenge Projects
+- **[cgc-aws-covid-etl](https://github.com/wheeleruniverse/cgc-aws-covid-etl/tree/main/cloudformation)**: Automated COVID-19 data ETL pipeline with Lambda, DynamoDB, and EventBridge scheduling
+- **[cgc-aws-app-performance](https://github.com/wheeleruniverse/cgc-aws-app-performance/tree/main/terraform)**: AWS application performance monitoring and optimization solutions with ElastiCache
+- **[cgc-aws-ml-recommendation-engine](https://github.com/wheeleruniverse/cgc-aws-ml-recommendation-engine)**: Machine learning-powered recommendation system on AWS with SageMaker and Athena
+- **[cgc-azure-cicd](https://github.com/wheeleruniverse/cgc-azure-cicd/tree/main/arm)** : Complete Azure CI/CD pipeline infrastructure and automation with ARM templates
+- **[cgc-gcp-resume-env](https://github.com/wheeleruniverse/cgc-gcp-resume-env/tree/main/core)** : Google Cloud resume hosting environment with Cloud Run and CDN
+- **[cgc-multicloud-madness](https://github.com/wheeleruniverse/cgc-multicloud-madness/tree/main/sam)** : Multi-cloud chaos engineering and resilience testing framework with SAM
+
+> **Note**: The infrastructure-registry focuses on reusable templates and patterns, while project-specific repositories contain complete implementations with application code, deployment scripts, and detailed project documentation.
 
 ## Getting Started
 
@@ -100,12 +122,15 @@ All templates in this repository follow cloud security best practices:
 
 ## Contributing
 
-This repository serves as a reference collection. When adding new templates:
-1. Follow existing directory structure conventions
-2. Include comprehensive documentation
-3. Implement security best practices
-4. Add appropriate tags and metadata
-5. Test thoroughly before committing
+This repository serves as a reference collection of **reusable infrastructure templates**. When adding new templates:
+1. Ensure templates are **modular and reusable** across different projects
+2. Follow existing directory structure conventions
+3. Include comprehensive documentation with usage examples
+4. Implement security best practices and compliance standards
+5. Add appropriate tags and metadata for discoverability
+6. Test thoroughly in multiple environments before committing
+
+**Note**: Complete project implementations with application code should be maintained in separate project-specific repositories.
 
 ## License
 
