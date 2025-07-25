@@ -1,32 +1,38 @@
 # Infrastructure Registry
 
-A curated collection of reusable Infrastructure as Code (IaC) templates and patterns for AWS, Azure, and multi-cloud deployments. This repository serves as a reference library for common infrastructure components, enterprise baselines, and architectural patterns.
+A curated collection of reusable AWS Infrastructure as Code (IaC) templates and automation tools. This repository serves as a reference library for common AWS infrastructure components, enterprise baselines, and architectural patterns.
 
 ## Overview
 
-This repository focuses on **reusable infrastructure templates and patterns** rather than complete project implementations. It contains modular, production-ready components organized by cloud provider and tool type, including service-specific templates, enterprise baselines, and architectural reference implementations.
+This repository focuses on **reusable AWS infrastructure templates and patterns** rather than complete project implementations. It contains modular, production-ready AWS components including CloudFormation templates, CDK constructs, and Go-based automation functions.
 
 For complete project implementations with application code and deployment automation, see the [Project-Specific Infrastructure](#project-specific-infrastructure) section below.
 
 ### Key Features
 
-- **Reusable Templates**: Modular, composable infrastructure components across multiple cloud providers
+- **AWS-Focused**: Curated collection of AWS infrastructure templates and automation tools
 - **Enterprise Baselines**: Production-ready account setup and governance patterns
-- **Security Best Practices**: Templates following cloud security frameworks and compliance standards
-- **Service Patterns**: Common architectural patterns for individual cloud services
-- **Reference Implementations**: Architectural examples from real-world challenges and scenarios
+- **Security Best Practices**: Templates following AWS security frameworks and compliance standards
+- **Service Patterns**: Modular templates for common AWS services and architectural patterns
+- **Automation Tools**: Go-based Lambda functions for advanced AWS automation scenarios
 
 ## Repository Structure
 
 ```
-├── aws/                          # AWS-specific resources
-│   ├── cdk/                      # AWS CDK projects (TypeScript)
+├── aws/
+│   ├── cdk/typescript/vpc/       # AWS CDK VPC template (TypeScript)
 │   ├── cli/                      # AWS CLI automation scripts
-│   ├── cloudformation/           # CloudFormation templates
-│   │   ├── project/              # Complete project templates
+│   ├── cloudformation/
+│   │   ├── project/wheelerswebservices/  # Enterprise baseline templates
 │   │   └── service/              # Individual service templates
-│   ├── lambda/                   # Lambda functions
-│   │   └── go/                   # Go-based Lambda functions for automation
+│   │       ├── budgets/          # Budget management
+│   │       ├── cloudtrail/       # Audit logging
+│   │       ├── dynamodb/         # NoSQL database
+│   │       ├── s3/               # Object storage
+│   │       └── vpc/              # Virtual private cloud
+│   └── lambda/go/                # Go-based automation functions
+│       ├── account-vending-machine/   # AWS Organizations automation
+│       └── cloudformation-cleanup/    # Resource cleanup automation
 ```
 
 ## Key Components
@@ -53,8 +59,6 @@ Modular CloudFormation templates for individual AWS services:
 - **Data**: DynamoDB tables with proper scaling
 - **CDN**: CloudFront distributions for static websites
 
-### Reusable Architecture Patterns
-The infrastructure-registry contains modular templates for common cloud patterns and enterprise baselines. All complete project implementations have been moved to their dedicated repositories (see [Project-Specific Infrastructure](#project-specific-infrastructure) below).
 
 ## Project-Specific Infrastructure
 
@@ -79,27 +83,37 @@ For complete, project-specific infrastructure implementations, see these dedicat
 
 ### Prerequisites
 - AWS CLI configured with appropriate permissions
-- Terraform >= 1.0 (for Terraform templates)
-- Node.js and npm (for CDK projects)
-- Go 1.19+ (for Lambda functions)
+- Node.js and npm (for CDK templates)
+- Go 1.19+ (for Lambda function development)
 
 ### Quick Start
-1. Choose the appropriate directory for your cloud provider and tool
+1. Browse the `aws/` directory for the appropriate template type
 2. Review the README in each subdirectory for specific instructions
 3. Customize parameters and variables for your environment
-4. Deploy using the appropriate tool (CloudFormation, Terraform, etc.)
+4. Deploy using CloudFormation or CDK
 
-### Example: Deploy a Simple VPC
+### Examples
+
+**Deploy a VPC with CloudFormation:**
 ```bash
-# Using CloudFormation
 aws cloudformation create-stack \
   --stack-name my-vpc \
   --template-body file://aws/cloudformation/service/vpc/yml/single-subnet-vpc.yml
+```
 
-# Using CDK
+**Deploy a VPC with CDK:**
+```bash
 cd aws/cdk/typescript/vpc/simple-vpc
 npm install
 cdk deploy
+```
+
+**Enterprise Account Baseline:**
+```bash
+aws cloudformation create-stack \
+  --stack-name baseline \
+  --template-body file://aws/cloudformation/project/wheelerswebservices/baseline.yml \
+  --parameters ParameterKey=pAccount,ParameterValue=mycompany
 ```
 
 ## Security & Best Practices
