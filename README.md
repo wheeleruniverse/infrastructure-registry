@@ -58,9 +58,8 @@ Modular CloudFormation templates for individual AWS services:
 - **Data**: DynamoDB tables with proper scaling
 - **CDN**: CloudFront distributions for static websites
 
-### Cloud Challenge Solutions
-Real-world implementations from cloud certification challenges:
-- **Multi-cloud Serverless API** (`CloudGuruChallenge_21.01`): Cross-cloud integration with AWS Lambda and Azure services
+### Reusable Architecture Patterns
+The infrastructure-registry contains modular templates for common cloud patterns and enterprise baselines. All complete project implementations have been moved to their dedicated repositories (see [Project-Specific Infrastructure](#project-specific-infrastructure) below).
 
 ## Project-Specific Infrastructure
 
